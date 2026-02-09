@@ -1,0 +1,97 @@
+detectors:
+  - name: "Vanilla Server"
+    type: "vanilla"
+    pattern: "Starting minecraft server version"
+  - name: "Forge Server"
+    type: "forge"
+    pattern: "Forge Mod Loader has successfully loaded|Minecraft Forge v[0-9.]+"
+  - name: "Fabric Server"
+    type: "fabric"
+    pattern: "Loading Minecraft [^ ]+ with Fabric Loader"
+  - name: "Paper Server"
+    type: "paper"
+    pattern: "This server is running Paper version"
+  - name: "Spigot Server"
+    type: "spigot"
+    pattern: "This server is running CraftBukkit version"
+  - name: "BungeeCord"
+    type: "bungeecord"
+    pattern: "Enabled BungeeCord version"
+  - name: "Velocity"
+    type: "velocity"
+    pattern: "Booting Velocity [0-9.]+"
+
+analyzers:
+  # --- Java & Environment ---
+  - name: "Outdated Java"
+    pattern: "UnsupportedClassVersionError|has been compiled by a more recent version of the Java Runtime"
+    severity: "error"
+    message: "Your Java version is outdated."
+    solutions:
+      - message: "Update your Java version to the required version (e.g., Java 17 for 1.18+, Java 21 for 1.20.5+)."
+  
+  - name: "Memory Issue"
+    pattern: "OutOfMemoryError|Java heap space"
+    severity: "critical"
+    message: "The server ran out of memory."
+    solutions:
+      - message: "Allocate more RAM to your server."
+      - message: "Check for memory leaks in plugins or mods."
+
+  # --- Network & Startup ---
+  - name: "Port Bind Failure"
+    pattern: "**** FAILED TO BIND TO PORT!|Address already in use"
+    severity: "critical"
+    message: "The server could not start because the port is already in use."
+    solutions:
+      - message: "Make sure no other server or process is running on the same port."
+      - message: "Change the 'server-port' in server.properties."
+
+  # --- Mods & Plugins ---
+  - name: "Mod Dependency Missing"
+    pattern: "Mod ([^ ]+) requires ([^ ]+) version ([^ ]+) or above"
+    severity: "error"
+    message: "Mod $1 is missing a dependency: $2 (version $3+)"
+    solutions:
+      - message: "Download and install the required version of $2."
+
+  - name: "Plugin Conflict"
+    pattern: "Ambiguous plugin name `([^']+)'"
+    severity: "warning"
+    message: "There is a plugin name conflict: $1"
+    solutions:
+      - message: "Remove one of the conflicting plugins."
+
+  - name: "Plugin Load Failure"
+    pattern: "Could not load 'plugins[\\\\/]([^']+)'"
+    severity: "error"
+    message: "Failed to load plugin: $1"
+    solutions:
+      - message: "Check if the plugin is compatible with your server version."
+      - message: "Check if all required dependencies for $1 are installed."
+
+  # --- Performance & World ---
+  - name: "Server Overloaded"
+    pattern: "Can't keep up! Is the server overloaded\\? Running ([0-9]+)ms or ([0-9]+) ticks behind"
+    severity: "warning"
+    message: "The server is lagging (running $1ms behind)."
+    solutions:
+      - message: "Reduce the view distance in server.properties."
+      - message: "Check for entity/tile entity lag using a timings report or Spark."
+
+  - name: "World Corruption"
+    pattern: "Corrupt chunk\\[([0-9-]+), ([0-9-]+)\\]|java.io.IOException: Invalid hex digit"
+    severity: "critical"
+    message: "World corruption detected at chunk ($1, $2)."
+    solutions:
+      - message: "Restore the world from a backup."
+      - message: "Use a tool like RegionFixer to repair the corrupted region file."
+
+  # --- Database ---
+  - name: "MySQL Connection Failure"
+    pattern: "Communications link failure|Access denied for user '([^']+)'@'([^']+)'"
+    severity: "error"
+    message: "Failed to connect to MySQL database."
+    solutions:
+      - message: "Check if your database server is running."
+      - message: "Verify the database credentials (username/password) in your config."

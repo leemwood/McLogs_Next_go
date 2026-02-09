@@ -1,0 +1,42 @@
+server {
+    listen 80;
+    server_name go.mclogs.lemwood.icu;
+
+    # 静态资源路径
+    root E:/www/mclogs-web;
+    index index.html;
+
+    # 开启 Gzip 压缩
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # 前端路由支持
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 后端 API 转发
+    location /1/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 增加上传限制以匹配后端配置
+        client_max_body_size 10M;
+    }
+}
+
+# HTTPS 配置建议 (使用 Certbot 获取证书)
+# server {
+#     listen 443 ssl;
+#     server_name go.mclogs.lemwood.icu;
+#     ssl_certificate E:/nginx/ssl/go.mclogs.lemwood.icu.crt;
+#     ssl_certificate_key E:/nginx/ssl/go.mclogs.lemwood.icu.key;
+#     ... (其余配置同上)
+# }
