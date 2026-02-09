@@ -62,6 +62,13 @@ func main() {
 		r.Use(func(c *gin.Context) {
 			origin := c.Request.Header.Get("Origin")
 			allowed := false
+			
+			if origin == "" {
+				// Not a CORS request, or from same origin
+				c.Next()
+				return
+			}
+
 			for _, o := range cfg.Server.CORS.AllowedOrigins {
 				if o == "*" || o == origin {
 					allowed = true
@@ -69,9 +76,14 @@ func main() {
 				}
 			}
 
-			if allowed {
-				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			if !allowed {
+				log.Printf("[CORS] Origin %s not allowed", origin)
+				c.Next()
+				return
 			}
+
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Writer.Header().Set("Vary", "Origin")
 			
 			if cfg.Server.CORS.AllowCredentials {
 				c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")

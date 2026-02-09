@@ -54,16 +54,22 @@ const aiAnalysisHistory = ref<any[]>([])
  */
 const formattedAiResult = computed(() => {
     if (!aiResult.value) return ''
-    if (aiResult.value.startsWith('Error') || aiResult.value.startsWith('Analysis failed')) {
-        return `<div class="text-destructive">${aiResult.value}</div>`
+    
+    // Ensure aiResult.value is a string before calling startsWith
+    const resultStr = typeof aiResult.value === 'string' 
+        ? aiResult.value 
+        : JSON.stringify(aiResult.value, null, 2)
+
+    if (resultStr.startsWith('Error') || resultStr.startsWith('Analysis failed')) {
+        return `<div class="text-destructive">${resultStr}</div>`
     }
 
-    if (aiResult.value.length > 50000) {
+    if (resultStr.length > 50000) {
         return `<div class="text-destructive">分析结果过长，已截断。请直接查看原始日志。</div>`
     }
 
     try {
-        return md.render(aiResult.value)
+        return md.render(resultStr)
     } catch (error) {
         console.error('Markdown渲染失败:', error)
         return `<div class="text-destructive">渲染分析结果时发生错误: ${(error as Error).message}</div>`
