@@ -63,7 +63,7 @@ jobs:
         working-directory: ./web
         run: npm run build
         env:
-          VITE_API_BASE_URL: https://go.mclogs.lemwood.icu
+          VITE_API_BASE_URL: https://api.go.mclogs.lemwood.icu
 
       - name: Upload Frontend Artifact
         uses: actions/upload-artifact@v4
