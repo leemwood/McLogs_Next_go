@@ -9,7 +9,17 @@ on:
 jobs:
   build-backend:
     name: Build Backend
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux, windows]
+        include:
+          - os: linux
+            goos: linux
+            binary_name: mclogs-api
+          - os: windows
+            goos: windows
+            binary_name: mclogs-api.exe
     steps:
       - uses: actions/checkout@v4
 
@@ -18,15 +28,19 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build Backend
+      - name: Build Backend (${{ matrix.os }})
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: amd64
+          CGO_ENABLED: 0
         run: |
-          go build -v -o mclogs-api.exe ./cmd/server/main.go
+          go build -v -o ${{ matrix.binary_name }} ./cmd/server/main.go
 
-      - name: Upload Backend Artifact
+      - name: Upload Backend Artifact (${{ matrix.os }})
         uses: actions/upload-artifact@v4
         with:
-          name: backend-binary
-          path: mclogs-api.exe
+          name: backend-binary-${{ matrix.os }}
+          path: ${{ matrix.binary_name }}
 
   build-frontend:
     name: Build Frontend
