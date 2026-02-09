@@ -19,6 +19,11 @@ type Config struct {
 type ServerConfig struct {
 	Port int    `mapstructure:"port"`
 	Mode string `mapstructure:"mode"`
+	CORS struct {
+		Enabled          bool     `mapstructure:"enabled"`
+		AllowedOrigins   []string `mapstructure:"allowed_origins"`
+		AllowCredentials bool     `mapstructure:"allow_credentials"`
+	} `mapstructure:"cors"`
 }
 
 type DatabaseConfig struct {

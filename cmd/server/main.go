@@ -58,19 +58,36 @@ func main() {
 	r := gin.Default()
 
 	// Add CORS middleware
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+	if cfg.Server.CORS.Enabled {
+		r.Use(func(c *gin.Context) {
+			origin := c.Request.Header.Get("Origin")
+			allowed := false
+			for _, o := range cfg.Server.CORS.AllowedOrigins {
+				if o == "*" || o == origin {
+					allowed = true
+					break
+				}
+			}
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
+			if allowed {
+				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			}
+			
+			if cfg.Server.CORS.AllowCredentials {
+				c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
+			
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
-		c.Next()
-	})
+			if c.Request.Method == "OPTIONS" {
+				c.AbortWithStatus(204)
+				return
+			}
+
+			c.Next()
+		})
+	}
 
 	// Initialize Handlers
 	h := api.NewHandler(store, c, p, cfg)
